@@ -1,0 +1,267 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Project:</h2>
+D:\university2\summer_training\my_src\snake\snake.uvproj
+Project File Date:  08/27/2019
+
+<h2>Output:</h2>
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_MS?SNAKE
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=693 code=5523
+creating hex file from "snake"...
+"snake" - 0 Error(s), 3 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5476
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+snake.c(55): error C202: 'j': undefined identifier
+snake.c(58): error C202: 'j': undefined identifier
+snake.c(59): error C202: 'j': undefined identifier
+snake.c(62): error C202: 'j': undefined identifier
+snake.c(64): error C202: 'j': undefined identifier
+snake.c(65): error C202: 'j': undefined identifier
+snake.c(66): error C202: 'j': undefined identifier
+snake.c(67): error C202: 'j': undefined identifier
+Target not created
+Rebuild target 'Target 1'
+compiling snake.c...
+snake.c(63): warning C206: 'delay': missing function-prototype
+snake.c(63): error C267: 'delay': requires ANSI-style prototype
+Target not created
+Rebuild target 'Target 1'
+compiling snake.c...
+snake.c(63): warning C206: 'delay_1ms': missing function-prototype
+snake.c(63): error C267: 'delay_1ms': requires ANSI-style prototype
+Target not created
+Rebuild target 'Target 1'
+compiling snake.c...
+snake.c(68): warning C206: 'delay': missing function-prototype
+snake.c(68): error C267: 'delay': requires ANSI-style prototype
+Target not created
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5632
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5632
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5642
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5649
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5630
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5617
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5649
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?PAINTSNAKE?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=691 code=5649
+creating hex file from "snake"...
+"snake" - 0 Error(s), 2 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=708 code=5698
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=708 code=5625
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=710 code=5657
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=710 code=5720
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+snake.c(39): error C141: syntax error near 'int'
+Target not created
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=712 code=5732
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=712 code=5732
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=712 code=5732
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=712 code=5732
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).
+Rebuild target 'Target 1'
+compiling snake.c...
+linking...
+*** WARNING L15: MULTIPLE CALL TO SEGMENT
+    SEGMENT: ?PR?MAKEFOOD?SNAKE
+    CALLER1: ?PR?TIME0?SNAKE
+    CALLER2: ?C_C51STARTUP
+Program Size: data=9.0 xdata=712 code=5732
+creating hex file from "snake"...
+"snake" - 0 Error(s), 1 Warning(s).

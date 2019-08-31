@@ -3,10 +3,10 @@
 #define uchar unsigned char
 uint reset[15]={0,1908,1701,1515,1433,1276,1136,1012,956,852,759,716,638,568,506};	     // 设置频率
               //0   1    2    3    4    5    6    7    1  2   3   4   5   6   7  
-xdata uchar music[204]={0,2, 10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 0,4, 0,2, 9,1, 9,1, 10,1, 9,1.5, 0,7.5, 0,2, 8,1, 8,1, 8,1, 8,1, 8,1, 10,2, 10,1, 10,1, 11,2, 10,3,
-                        0,8, 8,1, 8,1, 9,1, 8,1, 9,2, 0,2, 8,1, 8,2, 6,1, 6,1, 5,3, 0,8, 9,1, 9,1, 10,1, 11,1, 11,2, 0,2, 9,1, 8,1, 10,1, 9,0.5, 9,2, 0,6,
+xdata uchar music[204]={10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 9,1, 9,1, 10,1, 9,1.5,  8,1, 8,1, 8,1, 8,1, 8,1, 10,2, 10,1, 10,1, 11,2, 10,3,
+                        0,1, 8,1, 8,1, 9,1, 8,1, 9,2, 0,1, 8,1, 8,2, 6,1, 6,1, 5,3, 0,1, 9,1, 9,1, 10,1, 11,1, 11,2, 0,1, 9,1, 8,1, 10,1, 9,0.5, 9,2, 0,1,
 					    10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 0,4, 10,1, 10,1, 12,1, 12,2,  10,1.5, 0,6, 8,1, 8,1, 8,1, 8,1, 8,1, 10,2, 10,1, 0,1, 10,1, 10,1, 10,2, 10,1, 
-					    10,1, 11,1, 10,4, 0,6,  8,1, 8,1, 9,1, 8,1, 8,2, 6,1.5, 8,1,  8,2, 6,1, 5,3, 0,5, 9,1, 9,1, 10,1, 11,1, 11,2, 0,1, 10,1, 9,1, 8,1,10,1, 9,1  };
+					    10,1, 11,1, 10,4, 0,2,  8,1, 8,1, 9,1, 8,1, 8,2, 6,1.5, 8,1,  8,2, 6,1, 5,3, 0,2, 9,1, 9,1, 10,1, 11,1, 11,2, 0,1, 10,1, 9,1, 8,1,10,1, 9,1  };
 			                             //
 
 sbit key1 = P3 ^ 2;
@@ -14,6 +14,7 @@ sbit key2 = P3 ^ 3;
 sbit beep=P3^4;   // 蜂鸣器
 	
 //这里初始化值
+uchar arrSegSelect[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e, 0x79, 0x71, 0x00};
 uchar arrDigitSelect[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};   //数码管段选
 uchar idf;
 uint time;
@@ -33,7 +34,8 @@ int x[50], oldX[50];
 int y[50], oldY[50];
 int len = 3;
 int dir = 1;    //上下左右  0 1 2 3
-
+int cntScore = 0;
+int addScore = 1;
 int foodX[2];
 int foodY[2];
 
@@ -51,28 +53,11 @@ void eatFood();
 void primeHeader();
 void Delay100us();
 void time1Init();
-void play() {
-		//delay_ms(180*music[++cntMusic]);               
-//	TR1=0;
-//	delay_ms(60*music[cntMusic]);				
-  // 	cntMusic++;
-	if(!musicFlag){
-			TR1=1;
-		TH1=(65536-reset[music[cntMusic]])/256;  //
-		TL1=(65536-reset[music[cntMusic]])%256; 
-		musicFlag = 1;	
-	}
-}
+void paintScore();
+void play();
+void playMove();
 
 
-void playMove(){
-	if(!moveFlag){
-		TR1=1;
-		TH1=(65536-reset[music[3]])/256;  //
-		TL1=(65536-reset[music[3]])%256; 
-		moveFlag = 1;	
-	}
-}
 
 	
 
@@ -124,7 +109,7 @@ void start(){
 			}			
 			}
 			
-			paintSnake();
+			//paintSnake();
 			//这里播放音乐
 			play();
 			
@@ -141,7 +126,29 @@ void time0() interrupt 1{
 	TH0 = 0xfc;
 	TL0 = 0x18;		
 	
-	if(moveFlag){
+	
+	//判断边界
+	if(time == 1000){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
+			//判断边界，这个换成更新数据之前。
+	 primeEdge();
+	//判断是否撞到自己
+  	primeHeader();
+	}
+	
+	if(!isStart){
+		if(time >= 50){
+			time = 0;
+		//	paintSnake();
+			paintScore();
+		}
+				//
+	}
+	
+	//如果开始游戏，开始更新数据		
+	if(isStart){
+		
+		
+		if(moveFlag){
 			delayMusic++;
 			if(delayMusic > 180){
 				moveFlag = 0;
@@ -150,22 +157,8 @@ void time0() interrupt 1{
 			}
 	}	
 	
-	if(musicFlag){
-			delayMusic++;
-			if(delayMusic > 180*music[cntMusic]){
-				musicFlag = 0;
-				delayMusic = 0;
-			}
-	}	
-	//判断边界
-	if(time == 1000){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
-			//判断边界，这个换成更新数据之前。
-	 primeEdge();
-	//判断是否撞到自己
-  	primeHeader();
-	}
-	//如果开始游戏，开始更新数据		
-	if(isStart){
+
+		
 //每一毫秒检测，蛇的方向
 	//如果key1键按下，而且反向不是在这个方向的
 
@@ -232,13 +225,17 @@ void time0() interrupt 1{
 						y[0] -= 1;
 			}				
 			
+			
 				playMove();//播放提示音
 				 time = 0;		
 		}
 		
-	 time++;	
+		
+		
+	
 	
 }
+ time++;	
 }
 //********************************************************主函数
 void main(){
@@ -302,6 +299,55 @@ void primeEdge(){
 			isEdge = 1;
 			break;
 		}	
+	}
+}
+void paintScore(){
+		  P0 = 0;
+			P2 = arrDigitSelect[cntScore];	
+			P0 = arrSegSelect[len];
+}
+void play() {
+	
+		if(reset[music[cntMusic]]!=0)			     //?????0?????,?????0???,???????????????
+	{
+	TR1=1;								 
+	TH1=(65536-reset[music[cntMusic]])/256;
+	TL1=(65536-reset[music[cntMusic]])%256;
+	}
+	else{TR1=0;}						 
+	delay_ms(180*music[++cntMusic]);               //??????????
+	TR1=0;
+	delay_ms(60*music[cntMusic]);					 //???????????
+	cntMusic++;
+	if(cntScore <= 0){
+		addScore = 1;
+	}
+	if(cntScore >= 7){
+		addScore = 0;
+	}
+	if(addScore)
+	cntScore++;
+	else cntScore--;
+    if(cntMusic==204)							 //??????5s ??????
+	{cntMusic=0;delay_ms(5000);}
+	
+	
+
+//	if(!musicFlag){
+		//	TR1=1;
+		//TH1=(65536-reset[music[cntMusic]])/256;  //
+		//TL1=(65536-reset[music[cntMusic]])%256; 
+	//	musicFlag = 1;	
+	//}
+}
+
+
+void playMove(){
+	if(!moveFlag){
+		TR1=1;
+		TH1=(65536-reset[music[3]])/256;  //
+		TL1=(65536-reset[music[3]])%256; 
+		moveFlag = 1;	
 	}
 }
 void makeFood(){
