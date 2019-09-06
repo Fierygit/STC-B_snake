@@ -1,4 +1,4 @@
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 1   
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 1   
 
 
 C51 COMPILER V9.51, COMPILATION OF MODULE SNAKE
@@ -10,559 +10,660 @@ line level    source
    1          #include <STC15F2K60S2.h>
    2          #define uint unsigned int
    3          #define uchar unsigned char
-   4          uint reset[15]={0,1908,1701,1515,1433,1276,1136,1012,956,852,759,716,638,568,506};       // 设置频率
-   5                        //0   1    2    3    4    5    6    7    1  2   3   4   5   6   7  
-   6          xdata uchar music[204]={10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 9,1, 9,1, 10,1, 9,1.5,  8,1, 8,1, 8,1, 8,1, 8,
+   4          
+   5          #define Sysclk 11059200L
+   6          #define Baudrate 9600
+   7          
+   8          uint speed[6] = {1000,900,800,700,600,500}; 
+   9          
+  10          uint reset[15]={0,1908,1701,1515,1433,1276,1136,1012,956,852,759,716,638,568,506};       // 设置频率
+  11                        //0   1    2    3    4    5    6    7    1  2   3   4   5   6   7  
+  12          xdata uchar music[204]={10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 9,1, 9,1, 10,1, 9,1.5,  8,1, 8,1, 8,1, 8,1, 8,
              -1, 10,2, 10,1, 10,1, 11,2, 10,3,
-   7                                  0,1, 8,1, 8,1, 9,1, 8,1, 9,2, 0,1, 8,1, 8,2, 6,1, 6,1, 5,3, 0,1, 9,1, 9,1, 10,1, 1
+  13                                  0,1, 8,1, 8,1, 9,1, 8,1, 9,2, 0,1, 8,1, 8,2, 6,1, 6,1, 5,3, 0,1, 9,1, 9,1, 10,1, 1
              -1,1, 11,2, 0,1, 9,1, 8,1, 10,1, 9,0.5, 9,2, 0,1,
-   8                        10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 0,4, 10,1, 10,1, 12,1, 12,2,  10,1.5, 0,6, 8,1, 8,1, 8,1, 8,1
+  14                        10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 0,4, 10,1, 10,1, 12,1, 12,2,  10,1.5, 0,6, 8,1, 8,1, 8,1, 8,1
              -, 8,1, 10,2, 10,1, 0,1, 10,1, 10,1, 10,2, 10,1, 
-   9                        10,1, 11,1, 10,4, 0,2,  8,1, 8,1, 9,1, 8,1, 8,2, 6,1.5, 8,1,  8,2, 6,1, 5,3, 0,2, 9,1, 9,1, 10,1,
+  15                        10,1, 11,1, 10,4, 0,2,  8,1, 8,1, 9,1, 8,1, 8,2, 6,1.5, 8,1,  8,2, 6,1, 5,3, 0,2, 9,1, 9,1, 10,1,
              - 11,1, 11,2, 0,1, 10,1, 9,1, 8,1,10,1, 9,1  };
-  10                                             //
-  11          
-  12          sbit key1 = P3 ^ 2;
-  13          sbit key2 = P3 ^ 3;
-  14          sbit beep=P3^4;   // 蜂鸣器
-  15            
-  16          //这里初始化值
-  17          uchar arrSegSelect[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e
+  16                                             //
+  17          sbit LED_SEL = P2^3;
+  18          sbit key1 = P3 ^ 2;
+  19          sbit key2 = P3 ^ 3;
+  20          sbit beep=P3^4;   // 蜂鸣器
+  21            
+  22          //这里初始化值
+  23          uchar arrSegSelect[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f, 0x77, 0x7c, 0x39, 0x5e
              -, 0x79, 0x71, 0x00};
-  18          uchar arrDigitSelect[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};   //数码管段选
-  19          uchar idf;
-  20          uint time;
-  21          uint cntKey;
-  22          uint cntMusic;
-  23          uint delayMusic;
-  24          int adc_value;
-  25          int foodTemp;
-  26          //记录游戏的结束开始
-  27          int isStart;
-  28          int isEdge;
-  29          int isPress; //判断是否按了按键，处理消抖动
-  30          int musicFlag = 0;
-  31          int moveFlag = 0;
-  32          //记录snake的坐标位置，信息
-  33          int x[50], oldX[50];
-  34          int y[50], oldY[50];
-  35          int len = 3;
-  36          int dir = 1;    //上下左右  0 1 2 3
-  37          int cntScore = 0;
-  38          int addScore = 1;
-  39          int foodX[2];
-  40          int foodY[2];
-  41          
-  42          
-  43          //一些用到的函数
-  44          void delay_ms(uint n);    //延时函数  单位为ms
-  45          void snakeInit();
-  46          void paintSnake();
-  47          void ADCInit();
-  48          void time0Init();
-  49          void primeEdge();
-  50          void makeFood();
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 2   
+  24          uchar arrDigitSelect[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};   //数码管段选
+  25          uchar idf;
+  26          uint time;
+  27          uint cntKey;
+  28          uint cntMusic;
+  29          uint delayMusic;
+  30          int adc_value;
+  31          int foodTemp;
+  32          //记录游戏的结束开始
+  33          int isStart;
+  34          int isEdge;
+  35          int isPress; //判断是否按了按键，处理消抖动
+  36          int musicFlag = 0;
+  37          int moveFlag = 0;
+  38          //记录snake的坐标位置，信息
+  39          int x[50], oldX[50];
+  40          int y[50], oldY[50];
+  41          int len = 3;
+  42          int dir = 1;    //上下左右  0 1 2 3
+  43          int cntScore = 0;
+  44          int addScore = 1;
+  45          int foodX[2];
+  46          int foodY[2];
+  47          uchar rdata = 0x00;
+  48          uint curSpeed;
+  49          uint rdataTemp;
+  50          int displayOld;
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 2   
 
-  51          void paintFood();
-  52          void eatFood();
-  53          void primeHeader();
-  54          void Delay100us();
-  55          void time1Init();
-  56          void paintScore();
-  57          void play();
-  58          void playMove();
-  59          
-  60          
-  61          
-  62            
-  63          
-  64          void Init() {
-  65   1        //初始化  数码管的输出
-  66   1        P0M1 = 0x00;
-  67   1        P0M0 = 0xff;
-  68   1        P2M1 = 0x00;
-  69   1        P2M0 = 0x08;
-  70   1        P3M0=0x10;                //????
-  71   1        P3M1=0x00;
-  72   1        EA = 1;  //总的中断器在这里打开
-  73   1        time0Init();  
-  74   1        time1Init();
-  75   1        ADCInit();
-  76   1        snakeInit();  
-  77   1        //测试用的
-  78   1        foodX[0] = 0;
-  79   1        foodX[1] = 1;
-  80   1        foodY[0] = 1;
-  81   1        foodY[1] = 1;
-  82   1        
-  83   1        //初始化完了开始游戏，之后设置通过距离来判断
-  84   1        isStart = 1;
-  85   1        isEdge = 0;
-  86   1        isPress = 0;
-  87   1        beep = 0;
-  88   1        cntMusic = 0;
-  89   1        delayMusic = 0;
-  90   1      }
-  91          void ADC_Handler() interrupt 5{
-  92   1        //中断之后flag ，要重新清零
-  93   1        ADC_CONTR &= 0xEF;   //(1110 1111)  flag 清零 
-  94   1      }
-  95          
-  96          void start(){
-  97   1        //
-  98   1        makeFood();
-  99   1        while(1){
- 100   2          if(isStart){
- 101   3            paintSnake();
- 102   3            paintFood();
- 103   3          }else {
- 104   3            //返回撞墙之前的数据
- 105   3            if(isEdge){
- 106   4              for(idf = 0; idf <= len; idf++){
- 107   5              x[idf] = oldX[idf];
- 108   5              y[idf] = oldY[idf];
- 109   5            }     
- 110   4            }
- 111   3            
- 112   3            //paintSnake();
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 3   
+  51          
+  52          
+  53          //一些用到的函数
+  54          void delay_ms(uint n);    //延时函数  单位为ms
+  55          void snakeInit();
+  56          void paintSnake();
+  57          void ADCInit();
+  58          void time0Init();
+  59          void primeEdge();
+  60          void makeFood();
+  61          void paintFood();
+  62          void eatFood();
+  63          void primeHeader();
+  64          void Delay100us();
+  65          void time1Init();
+  66          void paintScore();
+  67          void play();
+  68          void playMove();
+  69          void changeSpeed();
+  70          void Uart_Init();
+  71          void Uart2_process();
+  72          
+  73          
+  74          
+  75          
+  76            
+  77          
+  78          void Init() {
+  79   1        //初始化  数码管的输出
+  80   1        P0M1 = 0x00;
+  81   1        P0M0 = 0xff;
+  82   1        P2M1 = 0x00;
+  83   1        P2M0 = 0x08;
+  84   1        P3M0=0x10;                //????
+  85   1        P3M1=0x00;
+  86   1        EA = 1;  //总的中断器在这里打开
+  87   1        time0Init();  
+  88   1        time1Init();
+  89   1        ADCInit();
+  90   1        Uart_Init();
+  91   1        snakeInit();  
+  92   1        //测试用的
+  93   1        foodX[0] = 0;
+  94   1        foodX[1] = 1;
+  95   1        foodY[0] = 1;
+  96   1        foodY[1] = 1;
+  97   1        
+  98   1        //初始化完了开始游戏，之后设置通过距离来判断
+  99   1        isStart = 1;
+ 100   1        isEdge = 0;
+ 101   1        isPress = 0;
+ 102   1        beep = 0;
+ 103   1        cntMusic = 0;
+ 104   1        delayMusic = 0;
+ 105   1        displayOld = 1;
+ 106   1        curSpeed = speed[0];
+ 107   1      }
+ 108          void start(){
+ 109   1        //
+ 110   1        makeFood();
+ 111   1        while(1){
+ 112   2          if(isStart){
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 3   
 
- 113   3            //这里播放音乐
- 114   3            play();
- 115   3            
- 116   3            } 
- 117   2        } 
- 118   1      }
- 119          void time1() interrupt 3{
- 120   1        beep = ~beep;
- 121   1      }
- 122          
- 123          //********************************************中断函数，所有的数据处理都在这里
- 124          /**************利用中断实现多线程**************/
- 125          void time0() interrupt 1{
- 126   1        TH0 = 0xfc;
- 127   1        TL0 = 0x18;   
- 128   1        
- 129   1        
- 130   1        //判断边界
- 131   1        if(time == 1000){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
- 132   2            //判断边界，这个换成更新数据之前。
- 133   2         primeEdge();
- 134   2        //判断是否撞到自己
- 135   2          primeHeader();
- 136   2        }
- 137   1        
- 138   1        if(!isStart){
- 139   2          if(time >= 50){
- 140   3            time = 0;
- 141   3          //  paintSnake();
- 142   3            paintScore();
- 143   3          }
- 144   2              //
- 145   2        }
- 146   1        
- 147   1        //如果开始游戏，开始更新数据    
- 148   1        if(isStart){
- 149   2          
- 150   2          
- 151   2          if(moveFlag){
- 152   3            delayMusic++;
- 153   3            if(delayMusic > 180){
- 154   4              moveFlag = 0;
- 155   4              delayMusic = 0;
- 156   4              TR1 = 0;
- 157   4            }
- 158   3        } 
- 159   2        
- 160   2      
- 161   2          
- 162   2      //每一毫秒检测，蛇的方向
- 163   2        //如果key1键按下，而且反向不是在这个方向的
- 164   2      
- 165   2          if(isPress){    
- 166   3            cntKey++;
- 167   3            if(cntKey > 300){
- 168   4              isPress = 0;
- 169   4              cntKey = 0;
- 170   4            } 
- 171   3          }
- 172   2          if(time%50 == 0 && isPress == 0){ //减少判断的次数， 一般人的反应是0.2ms
- 173   3            if(dir != 2 && key1 == 0 ){
- 174   4                dir = 3;    
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 4   
+ 113   3            paintSnake();
+ 114   3            paintFood();
+ 115   3          }else{
+ 116   3            //paintSnake();
+ 117   3            //这里播放音乐
+ 118   3            if(isEdge){
+ 119   4              for(idf = 0; idf <= len; idf++){
+ 120   5              x[idf] = oldX[idf];
+ 121   5              y[idf] = oldY[idf];
+ 122   5            }   
+ 123   4            }     
+ 124   3             
+ 125   3            
+ 126   3            
+ 127   3            play();
+ 128   3            
+ 129   3            
+ 130   3        } 
+ 131   2      }
+ 132   1      }
+ 133          
+ 134          void ADC_Handler() interrupt 5{
+ 135   1        //中断之后flag ，要重新清零
+ 136   1        ADC_CONTR &= 0xEF;   //(1110 1111)  flag 清零 
+ 137   1      }
+ 138          
+ 139          
+ 140          
+ 141          void time1() interrupt 3{
+ 142   1        beep = ~beep;
+ 143   1      }
+ 144          
+ 145          //********************************************中断函数，所有的数据处理都在这里
+ 146          /**************利用中断实现多线程**************/
+ 147          void time0() interrupt 1{
+ 148   1        TH0 = 0xfc;
+ 149   1        TL0 = 0x18;   
+ 150   1        
+ 151   1        
+ 152   1        //判断边界
+ 153   1        if(time == curSpeed){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
+ 154   2            //判断边界，这个换成更新数据之前。
+ 155   2         primeEdge();
+ 156   2        //判断是否撞到自己
+ 157   2          primeHeader();
+ 158   2          
+ 159   2        }
+ 160   1           
+ 161   1        
+ 162   1        if(!isStart ){
+ 163   2          
+ 164   2          
+ 165   2          if( displayOld){ 
+ 166   3              paintSnake();
+ 167   3          }    
+ 168   2          if(time > 3000){
+ 169   3              displayOld = 0;
+ 170   3            }
+ 171   2          
+ 172   2          if( !displayOld && time >= 50 ){
+ 173   3            time = 0;
+ 174   3          //  paintSnake();
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 4   
 
- 175   4                isPress = 1;
- 176   4            }else if(key2 ==0 && dir != 0){
- 177   4              dir = 1;    
- 178   4              isPress = 1;
- 179   4            }
- 180   3            //这是一个mmp的地方， key三键和导航键共用输出
- 181   3            //不过没有关系，反正导航键的adc输出有key3
- 182   3            else { 
- 183   4                adc_value = -1;
- 184   4                adc_value = ((ADC_RES & 0x03) << 8) | ADC_RESL;
- 185   4                adc_value = adc_value >> 7;
- 186   4            //1 不动  2 是下  3是 里面
- 187   4              if( adc_value == 3 && dir != 1){
- 188   5                  dir = 0;
- 189   5                isPress = 1;
- 190   5              } else if( adc_value == 0 && dir != 3){
- 191   5                dir = 2;
- 192   5                isPress = 1;
- 193   5              }
- 194   4            //判断完之后重新计时，    注意的是 1 ms判断一次方向
- 195   4              
- 196   4            //adc是大概500个指令周期一个输出，500/12M，是一个小于
- 197   4            //1ms的数， 所以没有所以
- 198   4              ADC_CONTR |= 0x08;        
- 199   4          }
- 200   3            
- 201   3          }
- 202   2          
- 203   2          
- 204   2          
- 205   2          
- 206   2        //数据的更改放在这里，不然更换到一半的时候被中断了？
- 207   2          if(time == 1000){
- 208   3            uchar j;
- 209   3            for(j = 0; j <=len; j++){
- 210   4              oldX[j] = x[j];
- 211   4              oldY[j] = y[j];
- 212   4            }   
- 213   3            eatFood();
- 214   3            for(j = len; j > 0; j--){
- 215   4                      x[j] = x[j-1];
- 216   4                      y[j] = y[j-1];
- 217   4            }
- 218   3            if(dir == 3){   
- 219   4                  x[0] += 1;     
- 220   4            }else if(dir == 2){   
- 221   4                  x[0] -= 1;      
- 222   4            }else if(dir == 1){
- 223   4                  y[0] += 1;    
- 224   4            }else{      
- 225   4                  y[0] -= 1;
- 226   4            }       
- 227   3            
- 228   3            
- 229   3              playMove();//播放提示音
- 230   3               time = 0;    
- 231   3          }
- 232   2          
- 233   2          
- 234   2          
- 235   2        
- 236   2        
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 5   
+ 175   3            paintScore();
+ 176   3          }
+ 177   2              //
+ 178   2        }
+ 179   1        
+ 180   1        //如果开始游戏，开始更新数据    
+ 181   1        if(isStart){
+ 182   2          
+ 183   2          
+ 184   2          if(moveFlag){
+ 185   3            delayMusic++;
+ 186   3            if(delayMusic > 180){
+ 187   4              moveFlag = 0;
+ 188   4              delayMusic = 0;
+ 189   4              TR1 = 0;
+ 190   4            }
+ 191   3        } 
+ 192   2        
+ 193   2      
+ 194   2          
+ 195   2      //每一毫秒检测，蛇的方向
+ 196   2        //如果key1键按下，而且反向不是在这个方向的
+ 197   2      
+ 198   2          if(isPress){    
+ 199   3            cntKey++;
+ 200   3            if(cntKey > 300){
+ 201   4              isPress = 0;
+ 202   4              cntKey = 0;
+ 203   4            } 
+ 204   3          }
+ 205   2          if(time%50 == 0 && isPress == 0){ //减少判断的次数， 一般人的反应是0.2ms
+ 206   3            if(dir != 2 && key1 == 0 ){
+ 207   4                dir = 3;    
+ 208   4                isPress = 1;
+ 209   4            }else if(key2 ==0 && dir != 0){
+ 210   4              dir = 1;    
+ 211   4              isPress = 1;
+ 212   4            }
+ 213   3            //这是一个mmp的地方， key三键和导航键共用输出
+ 214   3            //不过没有关系，反正导航键的adc输出有key3
+ 215   3            else { 
+ 216   4                adc_value = -1;
+ 217   4                adc_value = ((ADC_RES & 0x03) << 8) | ADC_RESL;
+ 218   4                adc_value = adc_value >> 7;
+ 219   4            //1 不动  2 是下  3是 里面
+ 220   4              if( adc_value == 3 && dir != 1){
+ 221   5                  dir = 0;
+ 222   5                isPress = 1;
+ 223   5              } else if( adc_value == 0 && dir != 3){
+ 224   5                dir = 2;
+ 225   5                isPress = 1;
+ 226   5              }
+ 227   4            //判断完之后重新计时，    注意的是 1 ms判断一次方向
+ 228   4              
+ 229   4            //adc是大概500个指令周期一个输出，500/12M，是一个小于
+ 230   4            //1ms的数， 所以没有所以
+ 231   4              ADC_CONTR |= 0x08;        
+ 232   4          }
+ 233   3            
+ 234   3          }
+ 235   2          
+ 236   2          
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 5   
 
- 237   2      }
- 238   1       time++;  
- 239   1      }
- 240          //********************************************************主函数
- 241          void main(){
- 242   1             Init(); 
- 243   1             start();
- 244   1      }
- 245          void snakeInit(){
- 246   1            //初始化  蛇的形状
- 247   1         //为什么这里不能初始化局部变量？
- 248   1          for(idf = 0; idf < 49; idf++){
- 249   2                x[idf] = y[idf] = -1;   
- 250   2            }
- 251   1        x[0] = 3;
- 252   1        x[1] = 2;
- 253   1        x[2] = 1;
- 254   1        x[3] = 0;
- 255   1        y[0] = y[1] = y[2] = y[3]= 0; 
- 256   1        len = 3;
- 257   1        dir = 3;
- 258   1      } 
- 259          void primeHeader(){
- 260   1        //这里注意边界尾部是可以捧得
- 261   1        for(idf = 1; idf < len ; idf ++){
- 262   2          if(x[0] == x[idf] && y[0] == y[idf]){
- 263   3            isStart = 0;
- 264   3            break;
- 265   3          } 
- 266   2        }
- 267   1      }
- 268          void time0Init(){   
- 269   1        //定时器0 的初始化
- 270   1        TMOD = 0x01;
- 271   1        TH0 = 0xfc;
- 272   1        TL0 = 0x18;
- 273   1        TR0 = 1;
- 274   1        
- 275   1        ET0 = 1;
- 276   1        time = 0;
- 277   1      }
- 278          void time1Init(){
- 279   1        ET1 = 1;
- 280   1          TR1=1;
- 281   1      }
+ 237   2          
+ 238   2          
+ 239   2        //数据的更改放在这里，不然更换到一半的时候被中断了？
+ 240   2          if(time == curSpeed){
+ 241   3            
+ 242   3            uchar j;
+ 243   3            for(j = 0; j <=len; j++){
+ 244   4              oldX[j] = x[j];
+ 245   4              oldY[j] = y[j];
+ 246   4            }   
+ 247   3            eatFood();
+ 248   3            for(j = len; j > 0; j--){
+ 249   4                      x[j] = x[j-1];
+ 250   4                      y[j] = y[j-1];
+ 251   4            }
+ 252   3            if(dir == 3){   
+ 253   4                  x[0] += 1;     
+ 254   4            }else if(dir == 2){   
+ 255   4                  x[0] -= 1;      
+ 256   4            }else if(dir == 1){
+ 257   4                  y[0] += 1;    
+ 258   4            }else{      
+ 259   4                  y[0] -= 1;
+ 260   4            }       
+ 261   3            
+ 262   3            curSpeed = speed[rdataTemp];
+ 263   3            
+ 264   3              playMove();//播放提示音
+ 265   3               time = 0;    
+ 266   3          }
+ 267   2          
+ 268   2          
+ 269   2      }
+ 270   1       time++;  
+ 271   1      }
+ 272          
+ 273          
+ 274          
+ 275          //********************************************************主函数
+ 276          void main(){
+ 277   1             Init(); 
+ 278   1             start();
+ 279   1      }
+ 280          
+ 281          
  282          
- 283          void ADCInit(){
- 284   1          //  ADC 初始化  
- 285   1        P1ASF = 0x80;
- 286   1        ADC_CONTR = 0x87; 
- 287   1        //1000 0111 
- 288   1        //ADC_POWER(0关)  SPEED1 SPEED0 ADC_FLAG       ADC_START CHS2 CHS1 CHS0
- 289   1        //ADC_FLAG 每次要清零   START 要重新置1
- 290   1        CLK_DIV |= 0x20; //设置res高两位， resl 低
- 291   1        EADC = 1; 
- 292   1          
- 293   1      }
- 294          void primeEdge(){
- 295   1        //如果超出了边界，对不起，游戏结束
- 296   1        for(idf = 0; idf <= len ; idf ++){
- 297   2          if(x[idf] < 0 || x[idf] > 8 || y[idf] <0 || y[idf] > 2){
- 298   3            isStart = 0;
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 6   
+ 283          
+ 284          //***************************Init*************************初始化
+ 285          void snakeInit(){
+ 286   1            //初始化  蛇的形状
+ 287   1         //为什么这里不能初始化局部变量？
+ 288   1          for(idf = 0; idf < 49; idf++){
+ 289   2                x[idf] = y[idf] = -1;   
+ 290   2            }
+ 291   1        x[0] = 3;
+ 292   1        x[1] = 2;
+ 293   1        x[2] = 1;
+ 294   1        x[3] = 0;
+ 295   1        y[0] = y[1] = y[2] = y[3]= 0; 
+ 296   1        len = 3;
+ 297   1        dir = 3;
+ 298   1      } 
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 6   
 
- 299   3            isEdge = 1;
- 300   3            break;
- 301   3          } 
- 302   2        }
- 303   1      }
- 304          void paintScore(){
- 305   1            P0 = 0;
- 306   1            P2 = arrDigitSelect[cntScore];  
- 307   1            P0 = arrSegSelect[len];
+ 299          void time0Init(){   
+ 300   1        //定时器0 的初始化
+ 301   1        TMOD = 0x01;
+ 302   1        TH0 = 0xfc;
+ 303   1        TL0 = 0x18;
+ 304   1        TR0 = 1;
+ 305   1        
+ 306   1        ET0 = 1;
+ 307   1        time = 0;
  308   1      }
- 309          void play() {
- 310   1        
- 311   1          if(reset[music[cntMusic]]!=0)          //?????0?????,?????0???,???????????????
- 312   1        {
- 313   2        TR1=1;                 
- 314   2        TH1=(65536-reset[music[cntMusic]])/256;
- 315   2        TL1=(65536-reset[music[cntMusic]])%256;
- 316   2        }
- 317   1        else{TR1=0;}             
- 318   1        delay_ms(180*music[++cntMusic]);               //??????????
- 319   1        TR1=0;
- 320   1        delay_ms(60*music[cntMusic]);          //???????????
- 321   1        cntMusic++;
- 322   1        if(cntScore <= 0){
- 323   2          addScore = 1;
- 324   2        }
- 325   1        if(cntScore >= 7){
- 326   2          addScore = 0;
- 327   2        }
- 328   1        if(addScore)
- 329   1        cntScore++;
- 330   1        else cntScore--;
- 331   1          if(cntMusic==204)              //??????5s ??????
- 332   1        {cntMusic=0;delay_ms(5000);}
- 333   1        
- 334   1        
- 335   1      
- 336   1      //  if(!musicFlag){
- 337   1          //  TR1=1;
- 338   1          //TH1=(65536-reset[music[cntMusic]])/256;  //
- 339   1          //TL1=(65536-reset[music[cntMusic]])%256; 
- 340   1        //  musicFlag = 1;  
- 341   1        //}
- 342   1      }
+ 309          void time1Init(){
+ 310   1        ET1 = 1;
+ 311   1          TR1=1;
+ 312   1      }
+ 313          
+ 314          
+ 315          void Uart_Init(){
+ 316   1          //AUXR = 0X80;
+ 317   1          S2CON = 0x50;  
+ 318   1          T2H = 65536 - (Sysclk / 4 / Baudrate) >> 8;
+ 319   1          T2L = 65536 - (Sysclk / 4 / Baudrate);
+ 320   1          IE2 |= 0x01;
+ 321   1          AUXR |= 0x10;
+ 322   1             
+ 323   1          ES = 1;    
+ 324   1            
+ 325   1      }
+ 326          
+ 327          
+ 328          void ADCInit(){
+ 329   1          //  ADC 初始化  
+ 330   1        P1ASF = 0x80;
+ 331   1        ADC_CONTR = 0x87; 
+ 332   1        //1000 0111 
+ 333   1        //ADC_POWER(0关)  SPEED1 SPEED0 ADC_FLAG       ADC_START CHS2 CHS1 CHS0
+ 334   1        //ADC_FLAG 每次要清零   START 要重新置1
+ 335   1        CLK_DIV |= 0x20; //设置res高两位， resl 低
+ 336   1        EADC = 1; 
+ 337   1          
+ 338   1      }
+ 339          
+ 340          
+ 341          
+ 342          //**************************************功能函数***************
  343          
- 344          
- 345          void playMove(){
- 346   1        if(!moveFlag){
- 347   2          TR1=1;
- 348   2          TH1=(65536-reset[music[3]])/256;  //
- 349   2          TL1=(65536-reset[music[3]])%256; 
- 350   2          moveFlag = 1; 
+ 344          void primeHeader(){
+ 345   1        //这里注意边界尾部是可以捧得
+ 346   1        for(idf = 1; idf < len ; idf ++){
+ 347   2          if(x[0] == x[idf] && y[0] == y[idf]){
+ 348   3            isStart = 0;
+ 349   3            break;
+ 350   3          } 
  351   2        }
  352   1      }
- 353          void makeFood(){
- 354   1        //这里借用一下定时器，获取定时器里面的计时数值
- 355   1        //这样就可以实现随机啦  ^_^
- 356   1        int tempflag = 0;
- 357   1        while(1){   
- 358   2          int tempy = TH0 % 3;
- 359   2          int tempx = TL0 % 9;
- 360   2          int tempdir = (TH0 >> 2) % 2;  //0 代表横着 1代表竖着
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 7   
+ 353          
+ 354          
+ 355          void changeSpeed(){
+ 356   1        
+ 357   1        if(~rdata&1){
+ 358   2         rdataTemp = 0;
+ 359   2        }else if(~rdata&(1<<1)){
+ 360   2         rdataTemp = 1;
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 7   
 
- 361   2          //这里判断在不在蛇的身体上
- 362   2          for(idf = 0; idf < len; idf++){
- 363   3            if(x[idf] - x[idf+1] > 0 ){
- 364   4              if(dir == 0 && tempx == x[idf+1] && tempy == y[idf+1]){     
- 365   5                break;
- 366   5              }
- 367   4            }else if(x[idf] - x[idf+1] < 0){
- 368   4              if(dir == 0 && tempx == x[idf] && tempy == y[idf]){
- 369   5                break;
- 370   5              }   
- 371   4            }else if(y[idf] - y[idf+1] > 0){
- 372   4               if(dir == 1 && tempx == x[idf+1] && tempy == y[idf+1] ){       
- 373   5                 break;
- 374   5               }      
- 375   4            }else if(y[idf] - y[idf+1] < 0){
- 376   4               if(dir == 1 && tempx == x[idf] && tempy == y[idf] ){     
- 377   5                 break;
- 378   5               }      
- 379   4            }
- 380   3            if(idf = len - 1){
- 381   4              if(!( dir == 0 && tempx == 8) && !(dir == 1&& tempy == 2)){
- 382   5                 tempflag = 1;        
- 383   5              }
- 384   4            } 
- 385   3          } 
- 386   2          if(tempflag == 1){
- 387   3            foodX[0] = tempx; 
- 388   3            foodX[1] = dir == 0? tempx : tempx + 1;
- 389   3            foodY[0] = tempy;
- 390   3            foodY[1] = dir == 1? tempy : tempy + 1;
- 391   3             break;
- 392   3          } 
- 393   2        }
- 394   1      }
- 395          void eatFood(){
- 396   1        uchar j;
- 397   1           //从左往右吃
- 398   1            if(x[0] == foodX[0] && y[0] == foodY[0]){
- 399   2              if(dir == 3 && foodX[1] - foodX[0] == 1){
- 400   3                len += 1;
- 401   3                for(j = len; j > 0; j--){
- 402   4                    x[j] = x[j-1];
- 403   4                     y[j] = y[j-1];
- 404   4                }
- 405   3                x[0] += 1;
- 406   3                makeFood();
- 407   3                }   
- 408   2            }
- 409   1            if(x[0] == foodX[1] && y[0] == foodY[0]){  //从右往左吃
- 410   2              if(dir == 2 && foodX[1] - foodX[0] == 1){
- 411   3                len += 1;
- 412   3                for(j = len; j > 0; j--){
- 413   4                    x[j] = x[j-1];
- 414   4                     y[j] = y[j-1];
- 415   4                }
- 416   3                x[0] -= 1;
- 417   3                makeFood();
- 418   3                }     
- 419   2            }
- 420   1        
- 421   1      }
- 422          
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 8   
+ 361   2        }else if(~rdata&(1<<2)){
+ 362   2         rdataTemp = 2;
+ 363   2        }else if(~rdata&(1<<3)){
+ 364   2         rdataTemp = 3;
+ 365   2        }else if(~rdata&(1<<4)){
+ 366   2         rdataTemp = 4;
+ 367   2        }else if(~rdata&(1<<5)){
+ 368   2         rdataTemp = 5;
+ 369   2        } 
+ 370   1          
+ 371   1      }
+ 372          
+ 373          
+ 374          
+ 375          void Uart2_process() interrupt 8{
+ 376   1          if(S2CON & 0x01){   
+ 377   2            S2CON &= ~0x01;    
+ 378   2            rdata = S2BUF;
+ 379   2            LED_SEL = 1;  
+ 380   2            changeSpeed();
+ 381   2            P0 = ~rdata;  
+ 382   2            delay_ms(10);
+ 383   2            LED_SEL = 0;      
+ 384   2          }
+ 385   1          
+ 386   1      }
+ 387          
+ 388          void primeEdge(){
+ 389   1        //如果超出了边界，对不起，游戏结束
+ 390   1        for(idf = 0; idf <= len ; idf ++){
+ 391   2          if(x[idf] < 0 || x[idf] > 8 || y[idf] <0 || y[idf] > 2){
+ 392   3            isStart = 0;
+ 393   3            isEdge = 1;
+ 394   3            break;
+ 395   3          } 
+ 396   2        }
+ 397   1      }
+ 398          void paintScore(){
+ 399   1            P0 = 0;
+ 400   1            P2 = arrDigitSelect[cntScore];  
+ 401   1            P0 = arrSegSelect[len];
+ 402   1      }
+ 403          void play() {
+ 404   1        
+ 405   1          if(reset[music[cntMusic]]!=0)          //?????0?????,?????0???,???????????????
+ 406   1        {
+ 407   2        TR1=1;                 
+ 408   2        TH1=(65536-reset[music[cntMusic]])/256;
+ 409   2        TL1=(65536-reset[music[cntMusic]])%256;
+ 410   2        }
+ 411   1        else{TR1=0;}             
+ 412   1        delay_ms(180*music[++cntMusic]);               //??????????
+ 413   1        TR1=0;
+ 414   1        delay_ms(60*music[cntMusic]);          //???????????
+ 415   1        cntMusic++;
+ 416   1        if(cntScore <= 0){
+ 417   2          addScore = 1;
+ 418   2        }
+ 419   1        if(cntScore >= 7){
+ 420   2          addScore = 0;
+ 421   2        }
+ 422   1        if(addScore)
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 8   
 
- 423          void paintFood(){
- 424   1        P0 = 0;
- 425   1        foodTemp = 0;
- 426   1        if(foodX[0] - foodX[1] == 0 && foodX[0] != 0){
- 427   2          foodTemp += foodY == 0 ? (1<<5) : (1<<4);
- 428   2          P2 = arrDigitSelect[foodX[0]-1];  
- 429   2        }else{  
- 430   2            if(foodX[0] - foodX[1] == 0 && foodX[0] == 0){
- 431   3              foodTemp += foodY == 0 ? (1<<5) : (1<<4); 
- 432   3            }else {
- 433   3                    if(foodY[0] == 0) foodTemp += 1;
- 434   3                    else if(foodY[0] == 1) foodTemp += (1<<6);
- 435   3                    else if(foodY[0] == 2) foodTemp += (1<<3);   //使用else减少判断次数
- 436   3            }         
- 437   2            P2 = arrDigitSelect[foodX[0]];    
- 438   2        }
- 439   1        P0 = foodTemp;
- 440   1        Delay100us();
- 441   1        //delay_ms(1);
- 442   1      }
- 443          void paintSnake() {
- 444   1          uchar temp,i,j;
- 445   1          for(i = 0;i < 8; i++) {
- 446   2            P0 = 0;
- 447   2            P2 = arrDigitSelect[i]; 
- 448   2            temp = 0;
- 449   2            for(j = 0; j <= len; j++) {
- 450   3              if(x[j] ==i && y[j] == 0) {
- 451   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 0) {
- 452   5                  temp += 1;
- 453   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 0) {
- 454   5                  temp += 1;
- 455   5                }
- 456   4              }
- 457   3              if(i == 7 &&x[j] ==i + 1 && y[j] == 0) {
- 458   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 1) {
- 459   5                  temp += (1<<1);
- 460   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 1) {
- 461   5                  temp += (1<<1);
- 462   5                }
- 463   4              }
- 464   3              if(i == 7 && x[j] ==i + 1 && y[j] == 1) {
- 465   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 2) {
- 466   5                  temp += (1<<2);
- 467   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 2) {
- 468   5                  temp += (1<<2);
- 469   5                }
- 470   4              }
- 471   3              if(x[j] ==i + 1 && y[j] == 2) {
- 472   4                if(j - 1 >= 0 && x[j-1] == i && y[j-1] == 2) {
- 473   5                  temp += (1<<3);
- 474   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 2) {
- 475   5                  temp += (1<<3);
- 476   5                }
- 477   4              }
- 478   3              if(x[j] ==i  && y[j] == 2) {
- 479   4                if(j - 1 >= 0 && x[j-1] == i  && y[j-1] == 1) {
- 480   5                  temp += (1<<4);
- 481   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 1) {
- 482   5                  temp += (1<<4);
- 483   5                }
- 484   4              }
-C51 COMPILER V9.51   SNAKE                                                                 08/30/2019 16:51:02 PAGE 9   
+ 423   1        cntScore++;
+ 424   1        else cntScore--;
+ 425   1          if(cntMusic==204)              //??????5s ??????
+ 426   1        {cntMusic=0;delay_ms(5000);}
+ 427   1        
+ 428   1        
+ 429   1      
+ 430   1      //  if(!musicFlag){
+ 431   1          //  TR1=1;
+ 432   1          //TH1=(65536-reset[music[cntMusic]])/256;  //
+ 433   1          //TL1=(65536-reset[music[cntMusic]])%256; 
+ 434   1        //  musicFlag = 1;  
+ 435   1        //}
+ 436   1      }
+ 437          
+ 438          
+ 439          void playMove(){
+ 440   1        if(!moveFlag){
+ 441   2          TR1=1;
+ 442   2          TH1=(65536-reset[music[3]])/256;  //
+ 443   2          TL1=(65536-reset[music[3]])%256; 
+ 444   2          moveFlag = 1; 
+ 445   2        }
+ 446   1      }
+ 447          void makeFood(){
+ 448   1        //这里借用一下定时器，获取定时器里面的计时数值
+ 449   1        //这样就可以实现随机啦  ^_^
+ 450   1        int tempflag = 0;
+ 451   1        while(1){   
+ 452   2          int tempy = TH0 % 3;
+ 453   2          int tempx = TL0 % 9;
+ 454   2          int tempdir = (TH0 >> 2) % 2;  //0 代表横着 1代表竖着
+ 455   2          //这里判断在不在蛇的身体上
+ 456   2          for(idf = 0; idf < len; idf++){
+ 457   3            if(x[idf] - x[idf+1] > 0 ){
+ 458   4              if(dir == 0 && tempx == x[idf+1] && tempy == y[idf+1]){     
+ 459   5                break;
+ 460   5              }
+ 461   4            }else if(x[idf] - x[idf+1] < 0){
+ 462   4              if(dir == 0 && tempx == x[idf] && tempy == y[idf]){
+ 463   5                break;
+ 464   5              }   
+ 465   4            }else if(y[idf] - y[idf+1] > 0){
+ 466   4               if(dir == 1 && tempx == x[idf+1] && tempy == y[idf+1] ){       
+ 467   5                 break;
+ 468   5               }      
+ 469   4            }else if(y[idf] - y[idf+1] < 0){
+ 470   4               if(dir == 1 && tempx == x[idf] && tempy == y[idf] ){     
+ 471   5                 break;
+ 472   5               }      
+ 473   4            }
+ 474   3            if(idf = len - 1){
+ 475   4              if(!( dir == 0 && tempx == 8) && !(dir == 1&& tempy == 2)){
+ 476   5                 tempflag = 1;        
+ 477   5              }
+ 478   4            } 
+ 479   3          } 
+ 480   2          if(tempflag == 1){
+ 481   3            foodX[0] = tempx; 
+ 482   3            foodX[1] = dir == 0? tempx : tempx + 1;
+ 483   3            foodY[0] = tempy;
+ 484   3            foodY[1] = dir == 1? tempy : tempy + 1;
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 9   
 
- 485   3              if(x[j] ==i  && y[j] == 1) {
- 486   4                if(j - 1 >= 0 && x[j-1] == i && y[j-1] == 0) {
- 487   5                  temp += (1<<5);
- 488   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 0) {
- 489   5                  temp += (1<<5);
- 490   5                }
- 491   4              }
- 492   3              if(x[j] ==i  && y[j] == 1) {
- 493   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 1) {
- 494   5                  temp += (1<<6);
- 495   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 1) {
- 496   5                  temp += (1<<6);
- 497   5                }
- 498   4              }
- 499   3            } 
- 500   2            
- 501   2            P0 = temp;
- 502   2            //每一位数码管显示1ms；
- 503   2            //delay_ms(1);
- 504   2            Delay100us();
- 505   2          }
- 506   1      }
- 507          //延时函数  单位为ms
- 508          void delay_ms( uint n ) {
- 509   1        while( n ) {
- 510   2          uchar i, j;
- 511   2          i = 11;
- 512   2          j = 190;
- 513   2          do {
- 514   3            while ( --j );
- 515   3          } while ( --i );
- 516   2          n--;
- 517   2        }
- 518   1      }
- 519          void Delay100us()   //@11.0592MHz
- 520          {
- 521   1        unsigned char i, j;
- 522   1      
- 523   1        i = 2;
- 524   1        j = 15;
- 525   1        do
- 526   1        {
- 527   2          while (--j);
- 528   2        } while (--i);
- 529   1      }
+ 485   3             break;
+ 486   3          } 
+ 487   2        }
+ 488   1      }
+ 489          void eatFood(){
+ 490   1        uchar j;
+ 491   1           //从左往右吃
+ 492   1            if(x[0] == foodX[0] && y[0] == foodY[0]){
+ 493   2              if(dir == 3 && foodX[1] - foodX[0] == 1){
+ 494   3                len += 1;
+ 495   3                for(j = len; j > 0; j--){
+ 496   4                    x[j] = x[j-1];
+ 497   4                     y[j] = y[j-1];
+ 498   4                }
+ 499   3                x[0] += 1;
+ 500   3                makeFood();
+ 501   3                }   
+ 502   2            }
+ 503   1            if(x[0] == foodX[1] && y[0] == foodY[0]){  //从右往左吃
+ 504   2              if(dir == 2 && foodX[1] - foodX[0] == 1){
+ 505   3                len += 1;
+ 506   3                for(j = len; j > 0; j--){
+ 507   4                    x[j] = x[j-1];
+ 508   4                     y[j] = y[j-1];
+ 509   4                }
+ 510   3                x[0] -= 1;
+ 511   3                makeFood();
+ 512   3                }     
+ 513   2            }
+ 514   1        
+ 515   1      }
+ 516          
+ 517          void paintFood(){
+ 518   1        P0 = 0;
+ 519   1        foodTemp = 0;
+ 520   1        if(foodX[0] - foodX[1] == 0 && foodX[0] != 0){
+ 521   2          foodTemp += foodY == 0 ? (1<<5) : (1<<4);
+ 522   2          P2 = arrDigitSelect[foodX[0]-1];  
+ 523   2        }else{  
+ 524   2            if(foodX[0] - foodX[1] == 0 && foodX[0] == 0){
+ 525   3              foodTemp += foodY == 0 ? (1<<5) : (1<<4); 
+ 526   3            }else {
+ 527   3                    if(foodY[0] == 0) foodTemp += 1;
+ 528   3                    else if(foodY[0] == 1) foodTemp += (1<<6);
+ 529   3                    else if(foodY[0] == 2) foodTemp += (1<<3);   //使用else减少判断次数
+ 530   3            }         
+ 531   2            P2 = arrDigitSelect[foodX[0]];    
+ 532   2        }
+ 533   1        P0 = foodTemp;
+ 534   1        Delay100us();
+ 535   1        //delay_ms(1);
+ 536   1      }
+ 537          void paintSnake() {
+ 538   1          uchar temp,i,j;
+ 539   1          for(i = 0;i < 8; i++) {
+ 540   2            P0 = 0;
+ 541   2            P2 = arrDigitSelect[i]; 
+ 542   2            temp = 0;
+ 543   2            for(j = 0; j <= len; j++) {
+ 544   3              if(x[j] ==i && y[j] == 0) {
+ 545   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 0) {
+ 546   5                  temp += 1;
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 10  
+
+ 547   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 0) {
+ 548   5                  temp += 1;
+ 549   5                }
+ 550   4              }
+ 551   3              if(i == 7 &&x[j] ==i + 1 && y[j] == 0) {
+ 552   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 1) {
+ 553   5                  temp += (1<<1);
+ 554   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 1) {
+ 555   5                  temp += (1<<1);
+ 556   5                }
+ 557   4              }
+ 558   3              if(i == 7 && x[j] ==i + 1 && y[j] == 1) {
+ 559   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 2) {
+ 560   5                  temp += (1<<2);
+ 561   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 2) {
+ 562   5                  temp += (1<<2);
+ 563   5                }
+ 564   4              }
+ 565   3              if(x[j] ==i + 1 && y[j] == 2) {
+ 566   4                if(j - 1 >= 0 && x[j-1] == i && y[j-1] == 2) {
+ 567   5                  temp += (1<<3);
+ 568   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 2) {
+ 569   5                  temp += (1<<3);
+ 570   5                }
+ 571   4              }
+ 572   3              if(x[j] ==i  && y[j] == 2) {
+ 573   4                if(j - 1 >= 0 && x[j-1] == i  && y[j-1] == 1) {
+ 574   5                  temp += (1<<4);
+ 575   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 1) {
+ 576   5                  temp += (1<<4);
+ 577   5                }
+ 578   4              }
+ 579   3              if(x[j] ==i  && y[j] == 1) {
+ 580   4                if(j - 1 >= 0 && x[j-1] == i && y[j-1] == 0) {
+ 581   5                  temp += (1<<5);
+ 582   5                } else if(j + 1 <= len && x[j+1] == i && y [j+1] == 0) {
+ 583   5                  temp += (1<<5);
+ 584   5                }
+ 585   4              }
+ 586   3              if(x[j] ==i  && y[j] == 1) {
+ 587   4                if(j - 1 >= 0 && x[j-1] == i+1 && y[j-1] == 1) {
+ 588   5                  temp += (1<<6);
+ 589   5                } else if(j + 1 <= len && x[j+1] == i+1 && y [j+1] == 1) {
+ 590   5                  temp += (1<<6);
+ 591   5                }
+ 592   4              }
+ 593   3            } 
+ 594   2            
+ 595   2            P0 = temp;
+ 596   2            //每一位数码管显示1ms；
+ 597   2            //delay_ms(1);
+ 598   2            Delay100us();
+ 599   2          }
+ 600   1      }
+ 601          
+ 602          
+ 603          //***************************延时函数***************
+ 604          //延时函数  单位为ms
+ 605          void delay_ms( uint n ) {
+ 606   1        while( n ) {
+ 607   2          uchar i, j;
+ 608   2          i = 11;
+C51 COMPILER V9.51   SNAKE                                                                 09/04/2019 15:42:05 PAGE 11  
+
+ 609   2          j = 190;
+ 610   2          do {
+ 611   3            while ( --j );
+ 612   3          } while ( --i );
+ 613   2          n--;
+ 614   2        }
+ 615   1      }
+ 616          void Delay100us()   //@11.0592MHz
+ 617          {
+ 618   1        unsigned char i, j;
+ 619   1      
+ 620   1        i = 2;
+ 621   1        j = 15;
+ 622   1        do
+ 623   1        {
+ 624   2          while (--j);
+ 625   2        } while (--i);
+ 626   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   4896    ----
+   CODE SIZE        =   5206    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =    698      12
+   XDATA SIZE       =    717      12
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

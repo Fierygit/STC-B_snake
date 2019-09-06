@@ -178,10 +178,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>22</ColumnNumber>
+      <ColumnNumber>7</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>477</TopLine>
-      <CurrentLine>495</CurrentLine>
+      <TopLine>138</TopLine>
+      <CurrentLine>168</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\snake.c</PathWithFileName>
       <FilenameWithoutPath>snake.c</FilenameWithoutPath>
