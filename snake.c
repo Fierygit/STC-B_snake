@@ -1,6 +1,12 @@
 #include <STC15F2K60S2.h>
 #define uint unsigned int
 #define uchar unsigned char
+
+#define Sysclk 11059200L
+#define Baudrate 9600
+
+uint speed[6] = {1000,900,800,700,600,500}; 
+
 uint reset[15]={0,1908,1701,1515,1433,1276,1136,1012,956,852,759,716,638,568,506};	     // 设置频率
               //0   1    2    3    4    5    6    7    1  2   3   4   5   6   7  
 xdata uchar music[204]={10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 9,1, 9,1, 10,1, 9,1.5,  8,1, 8,1, 8,1, 8,1, 8,1, 10,2, 10,1, 10,1, 11,2, 10,3,
@@ -8,7 +14,7 @@ xdata uchar music[204]={10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 9,1, 9,1, 10,1, 9,1.
 					    10,1, 10,1, 10,1, 10,1, 12,1, 12,3, 0,4, 10,1, 10,1, 12,1, 12,2,  10,1.5, 0,6, 8,1, 8,1, 8,1, 8,1, 8,1, 10,2, 10,1, 0,1, 10,1, 10,1, 10,2, 10,1, 
 					    10,1, 11,1, 10,4, 0,2,  8,1, 8,1, 9,1, 8,1, 8,2, 6,1.5, 8,1,  8,2, 6,1, 5,3, 0,2, 9,1, 9,1, 10,1, 11,1, 11,2, 0,1, 10,1, 9,1, 8,1,10,1, 9,1  };
 			                             //
-
+sbit LED_SEL = P2^3;
 sbit key1 = P3 ^ 2;
 sbit key2 = P3 ^ 3;
 sbit beep=P3^4;   // 蜂鸣器
@@ -38,6 +44,10 @@ int cntScore = 0;
 int addScore = 1;
 int foodX[2];
 int foodY[2];
+uchar rdata = 0x00;
+uint curSpeed;
+uint rdataTemp;
+int displayOld;
 
 
 //一些用到的函数
@@ -56,6 +66,10 @@ void time1Init();
 void paintScore();
 void play();
 void playMove();
+void changeSpeed();
+void Uart_Init();
+void Uart2_process();
+
 
 
 
@@ -73,6 +87,7 @@ void Init() {
   time0Init();	
   time1Init();
   ADCInit();
+	Uart_Init();
 	snakeInit();	
 	//测试用的
 	foodX[0] = 0;
@@ -87,12 +102,9 @@ void Init() {
 	beep = 0;
 	cntMusic = 0;
 	delayMusic = 0;
+	displayOld = 1;
+	curSpeed = speed[0];
 }
-void ADC_Handler() interrupt 5{
-	//中断之后flag ，要重新清零
-	ADC_CONTR &= 0xEF;   //(1110 1111)  flag 清零	
-}
-
 void start(){
 	//
 	makeFood();
@@ -100,22 +112,32 @@ void start(){
 		if(isStart){
 		  paintSnake();
 			paintFood();
-		}else {
-			//返回撞墙之前的数据
+		}else{
+			//paintSnake();
+			//这里播放音乐
 			if(isEdge){
 				for(idf = 0; idf <= len; idf++){
 				x[idf] = oldX[idf];
 				y[idf] = oldY[idf];
-			}			
-			}
+			}		
+	  	}			
+			 
 			
-			//paintSnake();
-			//这里播放音乐
+			
 			play();
 			
-			}	
+			
 	}	
 }
+}
+
+void ADC_Handler() interrupt 5{
+	//中断之后flag ，要重新清零
+	ADC_CONTR &= 0xEF;   //(1110 1111)  flag 清零	
+}
+
+
+
 void time1() interrupt 3{
 	beep = ~beep;
 }
@@ -128,15 +150,26 @@ void time0() interrupt 1{
 	
 	
 	//判断边界
-	if(time == 1000){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
+	if(time == curSpeed){  //防止闪烁， 一秒钟检测一次够了,刚好有一个动画
 			//判断边界，这个换成更新数据之前。
 	 primeEdge();
 	//判断是否撞到自己
   	primeHeader();
+		
 	}
+	   
 	
-	if(!isStart){
-		if(time >= 50){
+	if(!isStart ){
+		
+		
+		if( displayOld){ 
+				paintSnake();
+		}		 
+		if(time > 3000){
+				displayOld = 0;
+			}
+		
+		if( !displayOld && time >= 50 ){
 			time = 0;
 		//	paintSnake();
 			paintScore();
@@ -204,7 +237,8 @@ void time0() interrupt 1{
 		
 		
 	//数据的更改放在这里，不然更换到一半的时候被中断了？
-		if(time == 1000){
+		if(time == curSpeed){
+			
 			uchar j;
 			for(j = 0; j <=len; j++){
 				oldX[j] = x[j];
@@ -225,23 +259,29 @@ void time0() interrupt 1{
 						y[0] -= 1;
 			}				
 			
+		  curSpeed = speed[rdataTemp];
 			
 				playMove();//播放提示音
 				 time = 0;		
 		}
 		
 		
-		
-	
-	
 }
  time++;	
 }
+
+
+
 //********************************************************主函数
 void main(){
 		   Init(); 
 			 start();
 }
+
+
+
+
+//***************************Init*************************初始化
 void snakeInit(){
 			//初始化  蛇的形状
    //为什么这里不能初始化局部变量？
@@ -256,15 +296,6 @@ void snakeInit(){
 	len = 3;
 	dir = 3;
 } 
-void primeHeader(){
-	//这里注意边界尾部是可以捧得
-	for(idf = 1; idf < len ; idf ++){
-		if(x[0] == x[idf] && y[0] == y[idf]){
-			isStart = 0;
-			break;
-		}	
-	}
-}
 void time0Init(){		
 	//定时器0 的初始化
   TMOD = 0x01;
@@ -280,6 +311,20 @@ void time1Init(){
 		TR1=1;
 }
 
+
+void Uart_Init(){
+	  //AUXR = 0X80;
+		S2CON = 0x50;  
+		T2H = 65536 - (Sysclk / 4 / Baudrate) >> 8;
+		T2L = 65536 - (Sysclk / 4 / Baudrate);
+		IE2 |= 0x01;
+		AUXR |= 0x10;
+	     
+		ES = 1;    
+      
+}
+
+
 void ADCInit(){
 		//	ADC 初始化	
 	P1ASF = 0x80;
@@ -291,6 +336,55 @@ void ADCInit(){
 	EADC = 1;	
 		
 }
+
+
+
+//**************************************功能函数***************
+
+void primeHeader(){
+	//这里注意边界尾部是可以捧得
+	for(idf = 1; idf < len ; idf ++){
+		if(x[0] == x[idf] && y[0] == y[idf]){
+			isStart = 0;
+			break;
+		}	
+	}
+}
+
+
+void changeSpeed(){
+	
+	if(~rdata&1){
+	 rdataTemp = 0;
+	}else if(~rdata&(1<<1)){
+	 rdataTemp = 1;
+	}else if(~rdata&(1<<2)){
+	 rdataTemp = 2;
+	}else if(~rdata&(1<<3)){
+	 rdataTemp = 3;
+	}else if(~rdata&(1<<4)){
+	 rdataTemp = 4;
+	}else if(~rdata&(1<<5)){
+	 rdataTemp = 5;
+	}	
+		
+}
+
+
+
+void Uart2_process() interrupt 8{
+		if(S2CON & 0x01){   
+			S2CON &= ~0x01;    
+			rdata = S2BUF;
+			LED_SEL = 1;	
+			changeSpeed();
+			P0 = ~rdata;  
+			delay_ms(10);
+			LED_SEL = 0;			
+		}
+		
+}
+
 void primeEdge(){
 	//如果超出了边界，对不起，游戏结束
 	for(idf = 0; idf <= len ; idf ++){
@@ -504,6 +598,9 @@ void paintSnake() {
 			Delay100us();
 		}
 }
+
+
+//***************************延时函数***************
 //延时函数  单位为ms
 void delay_ms( uint n ) {
 	while( n ) {
